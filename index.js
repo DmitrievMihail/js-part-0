@@ -61,7 +61,11 @@ const areEqual = (a, b) => {
     const typea = getRealType(a);
     const typeb = getRealType(b);
     if (typea === 'array' && typeb === 'array') {
-        // Если оба элемента массива то сравниваем поэлементно
+        // Еесли оба массивы - то сначала сравниваем длину
+        if( a.length != b.length ){
+            return false;
+        }
+        // А затем - содержимое
         for (const key in a) {
             if (!areEqual(a[key], b[key])) {
                 // Рекурсия для многомерности
@@ -107,6 +111,19 @@ const getTypesOfItems = (arr) => {
 
 const allItemsHaveTheSameType = (arr) => {
     // Return true if all items of array have the same type
+    let arr2 = getTypesOfItems(arr);
+    if(!arr2.length){ // Если массива нету, то и однотипных элементов там нету
+        return false;
+    }
+    let first = arr2[0]; 
+    for (const item of arr2) {
+        // Тут первое с первым сравниваем (лишний раз), зато массив из одного элемента однотипным считаем и запись короче
+        if(item != first){
+            return false;
+        }
+    }
+    return true;
+
     return (
         Object.keys(
             getTypesOfItems(arr).reduce((acc, el) => {
@@ -117,6 +134,24 @@ const allItemsHaveTheSameType = (arr) => {
     );
     // стрелочная функция создаёт объект вида тип:количество, внешее сравнение проверяет на 1 (если одна строка, значит все типы равны)
 };
+
+const gobalTypesList=[
+    'boolean',
+    'number',
+    'string',
+    'null',
+    'array',
+    'object',
+    'function',
+    'undefined',
+    'NaN',
+    'Infinity',
+    'date',
+    'regexp',
+    'set',
+    'map',
+    'bigint',
+];
 
 const countRealTypes = (arr) => {
     // Return an array of arrays with a type and count of items
@@ -129,23 +164,7 @@ const countRealTypes = (arr) => {
         ret[type] = type in ret ? ret[type] + 1 : 1;
     }
     const ret2 = [];
-    for (const type of [
-        'boolean',
-        'number',
-        'string',
-        'null',
-        'array',
-        'object',
-        'function',
-        'undefined',
-        'NaN',
-        'Infinity',
-        'date',
-        'regexp',
-        'set',
-        'map',
-        'bigint',
-    ]) {
+    for (const type of gobalTypesList) {
         // Эта фиговина сортирует по типу (перебираем массив сначала)
         if (ret[type]) {
             ret2.push([type, ret[type]]);
@@ -162,23 +181,7 @@ const sortTypes = (arr) => {
     }
 
     const ret2 = [];
-    for (const type of [
-        'boolean',
-        'number',
-        'string',
-        'null',
-        'array',
-        'object',
-        'function',
-        'undefined',
-        'NaN',
-        'Infinity',
-        'date',
-        'regexp',
-        'set',
-        'map',
-        'bigint',
-    ]) {
+    for (const type of gobalTypesList) {
         // Эта фиговина сортирует по типу (перебираем массив сначала)
         if (ret[type]) {
             ret2.push([type, ret[type]]);
@@ -271,11 +274,11 @@ const knownTypes = [
     true,
     1,
     'asdf',
+    null,
     [],
     {},
     () => {},
     undefined,
-    null,
     'a' / 2,
     1 / 0,
     new Date(),
@@ -292,9 +295,9 @@ test('Check basic types', getTypesOfItems(knownTypes), [
     'string',
     'object',
     'object',
+    'object',
     'function',
     'undefined',
-    'object',
     'number',
     'number',
     'object',
@@ -304,24 +307,8 @@ test('Check basic types', getTypesOfItems(knownTypes), [
     'bigint',
 ]);
 
-test('Check real types', getRealTypesOfItems(knownTypes), [
-    'boolean',
-    'number',
-    'string',
-    'array',
-    'object',
-    'function',
-    'undefined',
-    'null',
-    'NaN',
-    'Infinity',
-    'date',
-    'regexp',
-    'set',
-    'map',
-    'bigint',
-    // What else?
-]);
+test('Check real types', getRealTypesOfItems(knownTypes), gobalTypesList);
+
 
 testBlock('everyItemHasAUniqueRealType');
 
@@ -403,3 +390,5 @@ test(
     true
     // Ставим инверсный порядок (негативный пример)
 );
+
+ test('Равенство разных массивов', areEqual([1,2,3], [1,2,3,4]), false);
