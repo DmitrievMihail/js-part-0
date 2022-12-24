@@ -1,31 +1,11 @@
-/*
-Какие минусы увидел в массивах вместо объектов (и в самой структуре программы)
-1. Многословновность:
-test('Boolean', getType(true), 'boolean');
-test('Number', getType(123), 'number');
-вот так зачем писать?  два раза boolean, два раза number. один раз с большой буквы, другой с маленькой?
-я понимаю что test - универсальная функция, но можно же было ей что нить сделать.
-2. Частое повторение полного списка:
-  15 раз повторяются типы JS, 15 раз - реальные типы, 15 раз проверка типов JS, 15 раз проверка реальных типов.
-  потом выборочно тестируются некоторые уникальные типы (а почему не все? их ещё 15 раз указывать ручками?)
-3. Массивы плохо сравнивать по ключу - они требуют предварительной сортировки и рекурсии
-4. Массивы не уникальны - можно случайно сделать дубль строки - и никогда такую ошибку не отловишь, пока специально массив не прошерстишь
-тоже самое касается орфографических ошибок. Объекты же проще сравнивать "по головам".
-5. Так же не понравился вывод теста на консоль. А если миллион типов будет? Лог потом текстовый парсить?
-А если ошибка какя-нить аппаратная или зависит от времени/нагрузки? (ну типа больше тыщи раз в секунду вызовешь функцию и она ошибки начнёт сыпать)
-Короче больше вопросов чем ответов к этому стилю программирования.
-
-Безусловно, для тестового задания более чем пойдёт - пока пишу прокачиваю синтаксис языка и стрелочные функции
-*/
-
 // Test utils
 
-const testBlock = (name) => {
+const testBlock = (name: string): void => {
     console.groupEnd();
     console.group(`# ${name}\n`);
 };
 
-const getRealType = (value) => {
+const getRealType = (value: any): string => {
     // Return string with a “real” type of value.
     // For example:
     //     typeof new Date()       // 'object'
@@ -35,7 +15,7 @@ const getRealType = (value) => {
     // Use typeof, instanceof and some magic. It's enough to have
     // 12-13 unique types but you can find out in JS even more :)
     // Функция перенесена вверх из-за линтера
-    let realType = typeof value;
+    let realType: string = typeof value;
     if (!['boolean', 'string', 'function', 'undefined', 'bigint'].includes(realType)) {
         // Дальнейшие проверки если тип неоднозначный
         if (realType === 'number') {
@@ -55,14 +35,14 @@ const getRealType = (value) => {
     // В конце возвращаем реальный тип (чтобы хоть как-то функция сработала на типах, которые ещё не придумали)
 };
 
-const areEqual = (a, b) => {
+const areEqual = (a: any, b: any): boolean => {
     // Compare arrays of primitives
     // Remember: [] !== []
-    const typea = getRealType(a);
-    const typeb = getRealType(b);
+    const typea: string = getRealType(a);
+    const typeb: string = getRealType(b);
     if (typea === 'array' && typeb === 'array') {
         // Еесли оба массивы - то сначала сравниваем длину
-        if( a.length != b.length ){
+        if (a.length != b.length) {
             return false;
         }
         // А затем - содержимое
@@ -77,7 +57,7 @@ const areEqual = (a, b) => {
     return a === b;
 };
 
-function test(whatWeTest, actualResult, expectedResult, flagInverse) {
+function test(whatWeTest: string, actualResult: any, expectedResult: any, flagInverse = false): void {
     // Функция дополнена флагом инверсии условия (чтобы ошибочные тесты проходить)
     // Переписана через ранний return чтобы не плодить else
     if (areEqual(actualResult, expectedResult)) {
@@ -98,44 +78,35 @@ function test(whatWeTest, actualResult, expectedResult, flagInverse) {
 
 // Functions
 
-const getType = (value) => {
+const getType = (value: any): string => {
     // Return string with a native JS type of value
     return typeof value;
 };
 
-const getTypesOfItems = (arr) => {
+const getTypesOfItems = (arr: Array<any>): Array<string> => {
     // Return array with types of items of given array
-    return arr.map((a) => getType(a));
+    return arr.map((a: string) => getType(a));
     // Стрелочная функция
 };
 
-const allItemsHaveTheSameType = (arr) => {
+const allItemsHaveTheSameType = (arr: Array<any>): boolean => {
     // Return true if all items of array have the same type
     let arr2 = getTypesOfItems(arr);
-    if(!arr2.length){ // Если массива нету, то и однотипных элементов там нету
+    if (!arr2.length) {
+        // Если массива нету, то и однотипных элементов там нету
         return false;
     }
-    let first = arr2[0]; 
+    let first: string = arr2[0];
     for (const item of arr2) {
         // Тут первое с первым сравниваем (лишний раз), зато массив из одного элемента однотипным считаем и запись короче
-        if(item != first){
+        if (item != first) {
             return false;
         }
     }
     return true;
-
-    return (
-        Object.keys(
-            getTypesOfItems(arr).reduce((acc, el) => {
-                acc[el] = (acc[el] || 0) + 1;
-                return acc;
-            }, {})
-        ).length === 1
-    );
-    // стрелочная функция создаёт объект вида тип:количество, внешее сравнение проверяет на 1 (если одна строка, значит все типы равны)
 };
 
-const gobalTypesList=[
+const gobalTypesList: Array<string> = [
     'boolean',
     'number',
     'string',
@@ -153,50 +124,50 @@ const gobalTypesList=[
     'bigint',
 ];
 
-const countRealTypes = (arr) => {
+const countRealTypes = (arr: Array<any>): Array<any> => {
     // Return an array of arrays with a type and count of items
     // with this type in the input array, sorted by type.
     // Like an Object.entries() result: [['boolean', 3], ['string', 5]]
 
-    const ret = {}; // Тут без объекта никак нельзя, иначе фулл скан массива
+    const ret = new Map(); // Объект заменил на мапу
     for (const key in arr) {
-        const type = getRealType(arr[key]);
-        ret[type] = type in ret ? ret[type] + 1 : 1;
+        const type: string = getRealType(arr[key]);
+        ret.set(type, ret.has(type) ? ret.get(type) + 1 : 1);
     }
-    const ret2 = [];
+    const ret2: Array<any> = [];
     for (const type of gobalTypesList) {
         // Эта фиговина сортирует по типу (перебираем массив сначала)
-        if (ret[type]) {
-            ret2.push([type, ret[type]]);
+        if (ret.has(type)) {
+            ret2.push([type, ret.get(type)]);
         }
     }
     return ret2;
 };
 
-const sortTypes = (arr) => {
+const sortTypes = (arr: Array<any>) => {
     // Функция сортирует массив, дабы он соответствовал правильному порядку типов
-    const ret = {};
+    const ret: Map<string, string> = new Map(); // Объект заменил на мапу
     for (const type of arr) {
-        ret[type[0]] = type[1];
+        ret.set(type[0], type[1]);
     }
 
-    const ret2 = [];
+    const ret2: Array<any> = [];
     for (const type of gobalTypesList) {
         // Эта фиговина сортирует по типу (перебираем массив сначала)
-        if (ret[type]) {
-            ret2.push([type, ret[type]]);
+        if (ret.has(type)) {
+            ret2.push([type, ret.get(type)]);
         }
     }
     return ret2;
 };
 
-const getRealTypesOfItems = (arr) => {
+const getRealTypesOfItems = (arr: any): Array<string> => {
     // Return array with real types of items of given array
-    return arr.map((a) => getRealType(a));
+    return arr.map((a: string) => getRealType(a));
     // Стрелочная функция
 };
 
-const everyItemHasAUniqueRealType = (arr) => {
+const everyItemHasAUniqueRealType = (arr: Array<any>): boolean => {
     // Return true if there are no items in array
     // with the same real type
     return countRealTypes(arr).length === arr.length;
@@ -223,6 +194,7 @@ testBlock('getRealType');
 
 test('Boolean', getRealType(true), 'boolean');
 test('Number', getRealType(123), 'number');
+// @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
 test('NaN', getRealType('a' / 123), 'NaN');
 test('Infinity', getRealType(1 / 0), 'Infinity');
 test('String', getRealType('whoo'), 'string');
@@ -259,6 +231,7 @@ test(
 
 test(
     'Values like a number',
+    // @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
     allItemsHaveTheSameType([123, 123 / 'a', 1 / 0]),
     // What the result?
     true
@@ -279,6 +252,7 @@ const knownTypes = [
     {},
     () => {},
     undefined,
+    // @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
     'a' / 2,
     1 / 0,
     new Date(),
@@ -309,13 +283,13 @@ test('Check basic types', getTypesOfItems(knownTypes), [
 
 test('Check real types', getRealTypesOfItems(knownTypes), gobalTypesList);
 
-
 testBlock('everyItemHasAUniqueRealType');
 
 test('All value types in the array are unique', everyItemHasAUniqueRealType([true, 123, '123']), true);
 
 test('All value types in the array are unique', everyItemHasAUniqueRealType([new Date(), new Set(), new Map()]), true);
 
+// @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
 test('Two values have the same type', everyItemHasAUniqueRealType([true, 123, '123' === 123]), false);
 
 test('There are no repeated types in knownTypes', everyItemHasAUniqueRealType(knownTypes), true);
@@ -362,7 +336,7 @@ test(
 
 test(
     'Counted unique types предварительно отсортированные',
-    countRealTypes([{}, new Date(null), true, !null, !!null, new Map()]),
+    countRealTypes([{}, new Date(), true, !null, !!null, new Map()]),
     sortTypes([
         // А вот здесь типы предварительно сортируем
         ['boolean', 3],
@@ -373,9 +347,7 @@ test(
     ])
 );
 
-test('Рекурсивно', countRealTypes([countRealTypes([{}, new Date(null), true, !null, !!null, new Map()])]), [
-    ['array', 1],
-]);
+test('Рекурсивно', countRealTypes([countRealTypes([{}, new Date(), true, !null, !!null, new Map()])]), [['array', 1]]);
 
 test('Константа как функция', countRealTypes([countRealTypes]), [['function', 1]]);
 
@@ -391,4 +363,6 @@ test(
     // Ставим инверсный порядок (негативный пример)
 );
 
- test('Равенство разных массивов', areEqual([1,2,3], [1,2,3,4]), false);
+testBlock('Others');
+
+test('Равенство разных массивов', areEqual([1, 2, 3], [1, 2, 3, 4]), false);
