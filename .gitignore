@@ -28,3 +28,10 @@ Desktop.ini
 
 node_modules
 yarn-error.log
+
+
+.*.*
+
+build
+
+package-lock.json
