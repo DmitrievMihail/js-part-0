@@ -1,5 +1,44 @@
 // Test utils
 
+const gobalTypesList: Array<string> = [
+    'boolean',
+    'number',
+    'string',
+    'null',
+    'array',
+    'object',
+    'function',
+    'undefined',
+    'NaN',
+    'Infinity',
+    'date',
+    'regexp',
+    'set',
+    'map',
+    'bigint',
+    'symbol'    
+];
+
+type ValidType =
+    | 'boolean'
+    | 'number'
+    | 'string'
+    | 'null'
+    | 'array'
+    | 'object'
+    | 'function'
+    | 'undefined'
+    | 'NaN'
+    | 'Infinity'
+    | 'date'
+    | 'regexp'
+    | 'set'
+    | 'map'
+    | 'bigint'
+    | 'symbol';
+
+type ValidTypeCount =  [ ValidType, number];
+
 const testBlock = (name: string): void => {
     console.groupEnd();
     console.group(`# ${name}\n`);
@@ -78,12 +117,12 @@ function test(whatWeTest: string, actualResult: any, expectedResult: any, flagIn
 
 // Functions
 
-const getType = (value: any): string => {
+const getType = (value: any): ValidType => {
     // Return string with a native JS type of value
     return typeof value;
 };
 
-const getTypesOfItems = (arr: Array<any>): Array<string> => {
+const getTypesOfItems = (arr: Array<any>): Array<ValidType> => {
     // Return array with types of items of given array
     return arr.map((a: string) => getType(a));
     // Стрелочная функция
@@ -91,12 +130,12 @@ const getTypesOfItems = (arr: Array<any>): Array<string> => {
 
 const allItemsHaveTheSameType = (arr: Array<any>): boolean => {
     // Return true if all items of array have the same type
-    let arr2 = getTypesOfItems(arr);
+    let arr2: Array<ValidType> = getTypesOfItems(arr);
     if (!arr2.length) {
         // Если массива нету, то и однотипных элементов там нету
         return false;
     }
-    let first: string = arr2[0];
+    let first: ValidType = arr2[0];
     for (const item of arr2) {
         // Тут первое с первым сравниваем (лишний раз), зато массив из одного элемента однотипным считаем и запись короче
         if (item != first) {
@@ -105,24 +144,6 @@ const allItemsHaveTheSameType = (arr: Array<any>): boolean => {
     }
     return true;
 };
-
-const gobalTypesList: Array<string> = [
-    'boolean',
-    'number',
-    'string',
-    'null',
-    'array',
-    'object',
-    'function',
-    'undefined',
-    'NaN',
-    'Infinity',
-    'date',
-    'regexp',
-    'set',
-    'map',
-    'bigint',
-];
 
 const countRealTypes = (arr: Array<any>): Array<any> => {
     // Return an array of arrays with a type and count of items
@@ -144,7 +165,7 @@ const countRealTypes = (arr: Array<any>): Array<any> => {
     return ret2;
 };
 
-const sortTypes = (arr: Array<any>) => {
+const sortTypes = (arr: Array<ValidTypeCount>): Array<ValidTypeCount> => {
     // Функция сортирует массив, дабы он соответствовал правильному порядку типов
     const ret: Map<string, string> = new Map(); // Объект заменил на мапу
     for (const type of arr) {
