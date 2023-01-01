@@ -1,32 +1,11 @@
 // Test utils
 
-type ValidType =
-    | 'boolean'
-    | 'number'
-    | 'string'
-    | 'null'
-    | 'array'
-    | 'object'
-    | 'function'
-    | 'undefined'
-    | 'NaN'
-    | 'Infinity'
-    | 'date'
-    | 'regexp'
-    | 'set'
-    | 'map'
-    | 'bigint'
-    | 'symbol';
-
-type ValidTypeCount = [ValidType, number];
-type ValidTypeArray =  Array<ValidTypeCount>;
-
-const testBlock = (name: string): void => {
+const testBlock = (name) => {
     console.groupEnd();
     console.group(`# ${name}\n`);
 };
 
-const getRealType = (value: any): ValidType => {
+const getRealType = (value) => {
     // Return string with a “real” type of value.
     // For example:
     //     typeof new Date()       // 'object'
@@ -36,8 +15,8 @@ const getRealType = (value: any): ValidType => {
     // Use typeof, instanceof and some magic. It's enough to have
     // 12-13 unique types but you can find out in JS even more :)
     // Функция перенесена вверх из-за линтера
-    let realType: ValidType = typeof value;
-    if (!['boolean', 'string', 'function', 'undefined', 'bigint', 'symbol'].includes(realType)) {
+    let realType = typeof value;
+    if (!['boolean', 'string', 'function', 'undefined', 'bigint'].includes(realType)) {
         // Дальнейшие проверки если тип неоднозначный
         if (realType === 'number') {
             // Для NaN и Infinity отдельный котёл
@@ -48,7 +27,6 @@ const getRealType = (value: any): ValidType => {
                 return 'Infinity';
             }
         } else {
-            // @ts-expect-error: компилятор не может проверить тип выражения, т.к. он формируется в рантайме
             realType = {}.toString.call(value).slice(8, -1).toLowerCase();
             // Секретная функция https://learn.javascript.ru/class-instanceof
         }
@@ -57,13 +35,14 @@ const getRealType = (value: any): ValidType => {
     // В конце возвращаем реальный тип (чтобы хоть как-то функция сработала на типах, которые ещё не придумали)
 };
 
-const areEqual = (a: any, b: any): boolean => {
+const areEqual = (a, b) => {
     // Compare arrays of primitives
     // Remember: [] !== []
-    const typea: string = getRealType(a);
-    const typeb: string = getRealType(b);
+    const typea = getRealType(a);
+    const typeb = getRealType(b);
     if (typea === 'array' && typeb === 'array') {
         // Еесли оба массивы - то сначала сравниваем длину
+        // eslint-disable-next-line eqeqeq
         if (a.length != b.length) {
             return false;
         }
@@ -79,7 +58,7 @@ const areEqual = (a: any, b: any): boolean => {
     return a === b;
 };
 
-function test(whatWeTest: string, actualResult: any, expectedResult: any, flagInverse = false): void {
+function test(whatWeTest, actualResult, expectedResult, flagInverse) {
     // Функция дополнена флагом инверсии условия (чтобы ошибочные тесты проходить)
     // Переписана через ранний return чтобы не плодить else
     if (areEqual(actualResult, expectedResult)) {
@@ -100,67 +79,62 @@ function test(whatWeTest: string, actualResult: any, expectedResult: any, flagIn
 
 // Functions
 
-const getType = (value: any): ValidType => {
+const getType = (value) => {
     // Return string with a native JS type of value
     return typeof value;
 };
 
-const getTypesOfItems = (arr: Array<any>): Array<ValidType> => {
+const getTypesOfItems = (arr) => {
     // Return array with types of items of given array
-    return arr.map((a: string) => getType(a));
+    return arr.map((a) => getType(a));
     // Стрелочная функция
 };
 
-const allItemsHaveTheSameType = (arr: Array<any>): boolean => {
+const allItemsHaveTheSameType = (arr) => {
     // Return true if all items of array have the same type
-    let arr2: Array<ValidType> = getTypesOfItems(arr);
+    const arr2 = getTypesOfItems(arr);
     if (!arr2.length) {
         // Если массива нету, то и однотипных элементов там нету
         return false;
     }
-    let first: ValidType = arr2[0];
     for (const item of arr2) {
         // Тут первое с первым сравниваем (лишний раз), зато массив из одного элемента однотипным считаем и запись короче
-        if (item != first) {
+        if (item !== arr2[0]) {
             return false;
         }
     }
     return true;
 };
 
-const countRealTypes = (arr: Array<any>): ValidTypeArray => {
+const countRealTypes = (arr) => {
     // Return an array of arrays with a type and count of items
     // with this type in the input array, sorted by type.
     // Like an Object.entries() result: [['boolean', 3], ['string', 5]]
 
-    // Тут немного корявенько с нотацией O(n) = n*n
-    // Но у нас очень небольшое n, а другой алгоритм (например с Map) потребует приведение типов
-
-    const ret: ValidTypeArray = [];
+    const ret = {};
     for (const key in arr) {
-        const type: ValidType = getRealType(arr[key]);
-        const index = ret.findIndex((x) => x[0] === type);
-        if( index ===-1 ){
-            ret.push([type, 1]);
-        }else{
-            ret[index][1]++;
-        }
+        const type = getRealType(arr[key]);
+        ret[type] = ret[type] ? ret[type] + 1 : 1;
     }
-    return ret.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    return Object.entries(ret).sort((a, b) => (a[0] < b[0] ? -1 : 1));
 };
 
-const sortTypes = (arr: ValidTypeArray): ValidTypeArray => {
+const sortTypes = (arr) => {
     // Функция сортирует массив, дабы он соответствовал правильному порядку типов
-    return arr.sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    const ret = {};
+    for (const type of arr) {
+        ret[type[0]] = type[1];
+    }
+    return Object.entries(ret).sort((a, b) => (a[0] < b[0] ? -1 : 1));
 };
 
-const getRealTypesOfItems = (arr: any): ValidTypeArray => {
+const getRealTypesOfItems = (arr) => {
     // Return array with real types of items of given array
-    return arr.map((a: string) => getRealType(a));
-
+    return arr.map((a) => getRealType(a));
+    // Стрелочная функция
 };
 
-const everyItemHasAUniqueRealType = (arr: any): boolean => {
+const everyItemHasAUniqueRealType = (arr) => {
     // Return true if there are no items in array
     // with the same real type
     return countRealTypes(arr).length === arr.length;
@@ -187,7 +161,6 @@ testBlock('getRealType');
 
 test('Boolean', getRealType(true), 'boolean');
 test('Number', getRealType(123), 'number');
-// @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
 test('NaN', getRealType('a' / 123), 'NaN');
 test('Infinity', getRealType(1 / 0), 'Infinity');
 test('String', getRealType('whoo'), 'string');
@@ -205,6 +178,9 @@ test('Regexp', getRealType(/ab+c/), 'regexp');
 test('Set', getRealType(new Set([1, 2])), 'set');
 test('Map', getRealType(new Map()), 'map');
 
+// console.log(getTypesOfItems([1, 2, 'Привет', {}, !1, [], /ab+c/, new Date()]));
+// Список обычных типов
+
 testBlock('allItemsHaveTheSameType');
 
 test('All values are numbers', allItemsHaveTheSameType([11, 12, 13]), true);
@@ -221,7 +197,6 @@ test(
 
 test(
     'Values like a number',
-    // @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
     allItemsHaveTheSameType([123, 123 / 'a', 1 / 0]),
     // What the result?
     true
@@ -242,7 +217,6 @@ const knownTypes = [
     {},
     () => {},
     undefined,
-    // @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
     'a' / 2,
     1 / 0,
     new Date(),
@@ -251,7 +225,6 @@ const knownTypes = [
     new Map(),
     BigInt(1),
     Symbol('abc'),
-
 ];
 
 test('Check basic types', getTypesOfItems(knownTypes), [
@@ -299,10 +272,7 @@ test('All value types in the array are unique', everyItemHasAUniqueRealType([tru
 
 test('All value types in the array are unique', everyItemHasAUniqueRealType([new Date(), new Set(), new Map()]), true);
 
-// @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
-test('Two values have the same type', everyItemHasAUniqueRealType([true, '123' == 123]), false);
-// @ts-expect-error: https://github.com/microsoft/TypeScript/issues/27910
-test('Three values have the same type (inverse)', everyItemHasAUniqueRealType([true, 123, '123' === 123]), false);
+test('Two values have the same type', everyItemHasAUniqueRealType([true, 123, '123' === 123]), false);
 
 test('There are no repeated types in knownTypes', everyItemHasAUniqueRealType(knownTypes), true);
 
@@ -334,7 +304,6 @@ test(
     // Ставим инверсный порядок (негативный пример)
 );
 
-// Add several positive and negative tests
 test(
     'Counted unique types предварительно отсортированные',
     countRealTypes([{}, null, true, !null, !!null]),
@@ -348,7 +317,7 @@ test(
 
 test(
     'Counted unique types предварительно отсортированные',
-    countRealTypes([{}, new Date(), true, !null, !!null, new Map()]),
+    countRealTypes([{}, new Date(null), true, !null, !!null, new Map()]),
     sortTypes([
         // А вот здесь типы предварительно сортируем
         ['boolean', 3],
@@ -359,7 +328,9 @@ test(
     ])
 );
 
-test('Рекурсивно', countRealTypes([countRealTypes([{}, new Date(), true, !null, !!null, new Map()])]), [['array', 1]]);
+test('Рекурсивно', countRealTypes([countRealTypes([{}, new Date(null), true, !null, !!null, new Map()])]), [
+    ['array', 1],
+]);
 
 test('Константа как функция', countRealTypes([countRealTypes]), [['function', 1]]);
 
@@ -375,6 +346,4 @@ test(
     // Ставим инверсный порядок (негативный пример)
 );
 
-testBlock('Others');
-
-test('Неравенство разных массивов', areEqual([1, 2, 3], [1, 2, 3, 4]), false);
+test('Равенство разных массивов', areEqual([1, 2, 3], [1, 2, 3, 4]), false);
