@@ -26,5 +26,18 @@ Desktop.ini
 .cov2emacs.log
 .coverage
 
+*.bat
+*.au3
+
+package-lock.json
+
+build
 node_modules
+githooks
 yarn-error.log
+yarn.lock
+yarn.lock
+index.js1
+
+index.html
+package.json1
