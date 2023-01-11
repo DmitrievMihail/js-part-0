@@ -26,7 +26,7 @@ const testBlock = (name: string): void => {
     console.group(`# ${name}\n`);
 };
 
-const getRealType = (value: any): ValidType => {
+const getRealType = (value: unknown): ValidType => {
     // Return string with a “real” type of value.
     // For example:
     //     typeof new Date()       // 'object'
@@ -41,10 +41,10 @@ const getRealType = (value: any): ValidType => {
         // Дальнейшие проверки если тип неоднозначный
         if (realType === 'number') {
             // Для NaN и Infinity отдельный котёл
-            if (isNaN(value)) {
+            if (Number.isNaN(value)) {
                 return 'NaN';
             }
-            if (value > Number.MAX_VALUE || value < Number.MIN_VALUE) {
+            if (!Number.isFinite(value)) {
                 return 'Infinity';
             }
         } else {
